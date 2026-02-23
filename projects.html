@@ -90,7 +90,6 @@
             <a href="sops.html">SOPs</a>
             <a href="projects.html" class="active">Projects</a>
             <a href="skills.html">Skills</a>
-            <a href="datacenter.html">Datacenter</a>
             <a href="contact.html" class="btn-contact">Contact</a>
         </div>
         <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
@@ -327,4 +326,13 @@
         tab.addEventListener('click', function() {
             document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
             this.classList.add('active');
-            const filter 
+            const filter = this.dataset.filter;
+            document.querySelectorAll('.project-card').forEach(card => {
+                const cat = card.dataset.cat;
+                card.style.display = (filter === 'all' || cat === filter) ? 'flex' : 'none';
+            });
+        });
+    });
+</script>
+</body>
+</html>
