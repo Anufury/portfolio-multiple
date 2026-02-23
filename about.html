@@ -124,7 +124,6 @@
             <a href="sops.html">SOPs</a>
             <a href="projects.html">Projects</a>
             <a href="skills.html">Skills</a>
-            <a href="datacenter.html">Datacenter</a>
             <a href="contact.html" class="btn-contact">Contact</a>
         </div>
         <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
@@ -170,7 +169,7 @@
                     <div class="info-row">
                         <i class="fas fa-envelope info-icon"></i>
                         <span class="info-label">Email</span>
-                        <span class="info-value" style="font-size:0.78rem"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="aecfc0dbcacbcbded8cfc3ddc79ceec9c3cfc7c280cdc1c3">[email&#160;protected]</a></span>
+                        <span class="info-value" style="font-size:0.78rem">anudeepvamsi2@gmail.com</span>
                     </div>
                     <div class="info-row">
                         <i class="fas fa-phone info-icon"></i>
@@ -352,4 +351,18 @@
     // Reveal .fade-up elements — runs on load AND scroll
     function revealElements() {
         var elements = document.querySelectorAll('.fade-up');
-        elements.
+        elements.forEach(function (el) {
+            var rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight - 40) {
+                el.classList.add('visible');
+            }
+        });
+    }
+
+    // Run immediately, on scroll, and after full page load
+    revealElements();
+    window.addEventListener('scroll', revealElements);
+    window.addEventListener('load', revealElements);
+</script>
+</body>
+</html>
