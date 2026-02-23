@@ -252,7 +252,6 @@
                 <a href="about.html">About</a><a href="lifecycle.html">Lifecycle</a>
                 <a href="sops.html">SOPs</a><a href="projects.html">Projects</a>
                 <a href="skills.html">Skills</a>
-            <a href="datacenter.html">Datacenter</a>
             </div>
         </div>
         <div class="footer-section">
@@ -281,4 +280,13 @@
                 entry.target.querySelectorAll('.skill-progress').forEach(bar => {
                     const w = bar.getAttribute('data-width');
                     setTimeout(() => { bar.style.width = w + '%'; }, 100);
-          
+                });
+                entry.target.classList.add('visible');
+                skillObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.skill-cat, .fade-up').forEach(el => skillObserver.observe(el));
+</script>
+</body>
+</html>
