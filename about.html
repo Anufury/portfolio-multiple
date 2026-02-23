@@ -320,8 +320,29 @@
 </footer>
 
 <script>
+    // Navbar scroll effect
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => { navbar.classList.toggle('scrolled', window.scrollY > 50); });
+
+    // Mobile menu toggle
     document.getElementById('mobileToggle').addEventListener('click', function() {
         document.getElementById('navLinks').classList.toggle('active');
-        const icon = this.q
+        const icon = this.querySelector('i');
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-times');
+    });
+
+    // Fade-up on scroll — also immediately show elements already in viewport
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.05, rootMargin: '0px 0px -30px 0px' });
+
+    document.querySelectorAll('.fade-up').forEach(el => {
+        observer.observe(el);
+        // Fallback: if already in view on load, show immediately
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight) el.classList.add('visible');
+    });
+</script>
+</body>
+</html>
