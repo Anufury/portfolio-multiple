@@ -80,7 +80,6 @@
             <a href="sops.html">SOPs</a>
             <a href="projects.html">Projects</a>
             <a href="skills.html">Skills</a>
-            <a href="datacenter.html">Datacenter</a>
             <a href="contact.html" class="btn-contact">Contact</a>
         </div>
         <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
@@ -207,4 +206,10 @@
         const icon = this.querySelector('i');
         icon.classList.toggle('fa-bars'); icon.classList.toggle('fa-times');
     });
-    const observer = n
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
