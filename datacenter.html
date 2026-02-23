@@ -1,590 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Datacenter Infrastructure | Anudeep Adari</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Archivo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-<style>
-:root {
-  --primary:#0066cc; --primary-dark:#004999; --accent:#00d4ff; --accent-warm:#ff6b35;
-  --bg-dark:#0a0e27; --bg-card:#141829; --bg-elevated:#1a1f3a;
-  --text-primary:#e8eaf0; --text-secondary:#a0a8c0; --text-muted:#6b7280;
-  --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
-  --border:rgba(255,255,255,0.08); --shadow:0 8px 32px rgba(0,0,0,0.3);
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{font-family:'Archivo',sans-serif;background:var(--bg-dark);color:var(--text-primary);overflow-x:hidden;cursor:none;}
-.cursor{position:fixed;width:12px;height:12px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:transform 0.1s,opacity 0.2s;mix-blend-mode:screen;}
-.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid rgba(0,212,255,0.4);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:all 0.15s ease;}
-.cursor.active{transform:translate(-50%,-50%) scale(2.5);opacity:0.5;}
-.cursor-ring.active{transform:translate(-50%,-50%) scale(0.6);border-color:var(--accent);}
-#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;opacity:0.5;}
-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,14,39,0.85);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:0 5%;transition:all 0.3s;}
-nav.scrolled{background:rgba(10,14,39,0.97);box-shadow:var(--shadow);}
-.nav-container{max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:1.2rem 0;}
-.logo{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--primary));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
-.nav-links{display:flex;gap:2.5rem;align-items:center;}
-.nav-links a{font-weight:500;font-size:0.95rem;color:var(--text-secondary);text-decoration:none;position:relative;transition:all 0.3s;}
-.nav-links a.active{color:var(--accent);}
-.nav-links a::after{content:'';position:absolute;bottom:-5px;left:0;width:0;height:2px;background:var(--accent);transition:width 0.3s;}
-.nav-links a:hover{color:var(--text-primary);}
-.nav-links a:hover::after,.nav-links a.active::after{width:100%;}
-.btn-contact{padding:0.6rem 1.5rem;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:6px;color:white;font-weight:600;cursor:none;transition:all 0.3s;font-size:0.9rem;text-decoration:none;}
-.btn-contact:hover{transform:translateY(-2px);}
-.mobile-toggle{display:none;font-size:1.5rem;color:var(--text-primary);cursor:none;background:none;border:none;}
-.page-hero{padding:140px 5% 40px;max-width:1400px;margin:0 auto;}
-.breadcrumb{font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--text-muted);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem;}
-.breadcrumb a{color:var(--accent);text-decoration:none;}
-.page-hero h1{font-size:3.8rem;font-weight:900;line-height:1.05;margin-bottom:1rem;}
-.page-hero p{font-size:1.05rem;color:var(--text-secondary);max-width:620px;line-height:1.7;}
-.hero-badges{display:flex;gap:0.75rem;margin-top:1.5rem;flex-wrap:wrap;}
-.hero-badge{font-family:'JetBrains Mono',monospace;font-size:0.72rem;padding:0.3rem 0.85rem;border-radius:20px;border:1px solid;display:flex;align-items:center;gap:0.4rem;}
-.badge-live{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.35);color:var(--success);}
-.badge-live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--success);animation:blink 1.2s ease-in-out infinite;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
-.badge-info{background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.25);color:var(--accent);}
-.metrics-ticker{background:var(--bg-card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:0.65rem 0;overflow:hidden;}
-.ticker-inner{display:flex;animation:ticker 35s linear infinite;white-space:nowrap;}
-.ticker-item{display:inline-flex;align-items:center;gap:0.5rem;padding:0 2.5rem;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-muted);border-right:1px solid var(--border);}
-.ticker-item .val{font-weight:600;}
-.ticker-item .up{color:var(--success);}
-.ticker-item .dn{color:var(--warning);}
-@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
-.page-content{padding:3rem 5% 5rem;max-width:1400px;margin:0 auto;}
-.sec-head{margin-bottom:1.8rem;}
-.sec-tag{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--accent);text-transform:uppercase;letter-spacing:2px;display:block;margin-bottom:0.4rem;}
-.sec-title{font-size:1.7rem;font-weight:800;}
-.live-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:3rem;}
-.live-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.4rem 1.6rem;position:relative;overflow:hidden;transition:all 0.3s;cursor:none;}
-.live-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--glow-color,var(--accent));}
-.live-card:hover{transform:translateY(-4px);border-color:var(--glow-color,var(--accent));box-shadow:0 0 24px rgba(0,212,255,0.12);}
-.live-card-label{font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:0.6rem;}
-.live-card-val{font-size:2rem;font-weight:900;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--text-primary),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
-.live-card-sub{font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem;display:flex;align-items:center;gap:0.3rem;}
-.chg.up{color:var(--success);font-family:'JetBrains Mono',monospace;font-weight:600;}
-.chg.dn{color:var(--danger);font-family:'JetBrains Mono',monospace;font-weight:600;}
-.spark{position:absolute;bottom:0;left:0;right:0;height:36px;opacity:0.25;}
-.topo-section{margin-bottom:3rem;}
-.topo-wrapper{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
-.topo-toolbar{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);flex-wrap:wrap;gap:0.8rem;}
-.topo-toolbar-title{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--accent);font-weight:600;}
-.topo-filter{display:flex;gap:0.5rem;margin-left:auto;flex-wrap:wrap;}
-.filter-btn{padding:0.3rem 0.8rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:0.72rem;font-family:'JetBrains Mono',monospace;cursor:none;transition:all 0.2s;}
-.filter-btn.on,.filter-btn:hover{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);}
-.topo-canvas-wrap{position:relative;height:480px;}
-#topoCanvas{width:100%;height:100%;display:block;cursor:none;}
-.node-tooltip{position:absolute;background:var(--bg-elevated);border:1px solid rgba(0,212,255,0.2);border-radius:12px;padding:1rem 1.2rem;min-width:210px;pointer-events:none;opacity:0;transition:opacity 0.18s;z-index:100;box-shadow:var(--shadow);}
-.node-tooltip.show{opacity:1;}
-.tt-head{font-weight:700;font-size:0.88rem;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;}
-.tt-chip{font-family:'JetBrains Mono',monospace;font-size:0.62rem;padding:0.15rem 0.45rem;border-radius:8px;background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.25);}
-.tt-row{display:flex;justify-content:space-between;font-size:0.76rem;color:var(--text-secondary);padding:0.18rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-.tt-row:last-of-type{border:none;margin-bottom:0.4rem;}
-.tt-row span:last-child{color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:0.73rem;font-weight:600;}
-.tt-status{display:flex;align-items:center;gap:0.35rem;font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--success);}
-.tt-dot{width:6px;height:6px;border-radius:50%;background:var(--success);}
-.layer-stack{border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:3rem;}
-.layer-row{padding:1.2rem 1.8rem;border-bottom:1px solid var(--border);position:relative;cursor:none;transition:background 0.25s;overflow:hidden;}
-.layer-row:last-child{border-bottom:none;}
-.layer-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--lc,var(--accent));transition:width 0.25s;}
-.layer-row:hover::before,.layer-row.open::before{width:5px;}
-.layer-row:hover,.layer-row.open{background:rgba(255,255,255,0.02);}
-.layer-top{display:flex;align-items:center;gap:1rem;}
-.l-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);}
-.l-meta{flex:1;}
-.l-name{font-weight:700;font-size:0.95rem;}
-.l-desc{font-size:0.73rem;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
-.l-right{display:flex;align-items:center;gap:1rem;margin-left:auto;}
-.l-util{text-align:right;}
-.l-util-num{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;}
-.l-util-lbl{font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
-.mini-bar{width:80px;height:4px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;}
-.mini-fill{height:100%;border-radius:10px;background:var(--lc,var(--accent));transition:width 1s ease;width:0;}
-.l-tog{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:none;display:flex;align-items:center;justify-content:center;font-size:0.68rem;transition:all 0.2s;flex-shrink:0;}
-.layer-row.open .l-tog{background:rgba(0,212,255,0.1);border-color:var(--accent);color:var(--accent);transform:rotate(180deg);}
-.l-detail{display:none;padding:1rem 0 0.4rem 3.5rem;animation:sld 0.28s ease;}
-.layer-row.open .l-detail{display:block;}
-@keyframes sld{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
-.chips{display:flex;flex-wrap:wrap;gap:0.55rem;margin-bottom:1rem;}
-.chip{display:flex;align-items:center;gap:0.45rem;padding:0.4rem 0.85rem;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;font-size:0.76rem;font-family:'JetBrains Mono',monospace;color:var(--text-secondary);transition:all 0.2s;}
-.chip:hover{background:rgba(255,255,255,0.08);color:var(--text-primary);transform:translateY(-2px);}
-.chip i{font-size:0.68rem;}
-.dm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;}
-.dm{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:0.65rem 0.9rem;}
-.dm-val{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;}
-.dm-lbl{font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-top:0.2rem;}
-.dials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-bottom:3rem;}
-.dial-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:all 0.3s;cursor:none;}
-.dial-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 0 28px rgba(0,212,255,0.1);}
-.dial-wrap{position:relative;width:130px;height:130px;margin-bottom:1rem;}
-.dial-svg{width:130px;height:130px;transform:rotate(-90deg);}
-.dial-bg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:10;}
-.dial-fill{fill:none;stroke-width:10;stroke-linecap:round;stroke-dasharray:345;stroke-dashoffset:345;transition:stroke-dashoffset 1.8s cubic-bezier(0.4,0,0.2,1);}
-.dial-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
-.dial-pct{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;}
-.dial-unit{font-size:0.62rem;color:var(--text-muted);}
-.dial-title{font-weight:700;font-size:0.88rem;margin-bottom:0.2rem;}
-.dial-sub{font-size:0.73rem;color:var(--text-secondary);}
-.log-box{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:3rem;}
-.log-hd{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.8rem;}
-.log-hd h4{font-size:0.9rem;font-weight:700;display:flex;align-items:center;gap:0.45rem;}
-.log-hd h4 i{color:var(--success);}
-.log-badge{font-family:'JetBrains Mono',monospace;font-size:0.66rem;padding:0.18rem 0.55rem;border-radius:8px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--success);}
-.log-ctrl{display:flex;gap:0.5rem;margin-left:auto;}
-.log-btn{padding:0.22rem 0.65rem;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-size:0.68rem;font-family:'JetBrains Mono',monospace;cursor:none;transition:all 0.2s;}
-.log-btn:hover,.log-btn.on{background:rgba(0,212,255,0.08);border-color:var(--accent);color:var(--accent);}
-.log-stream{height:230px;overflow-y:auto;padding:0.75rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.74rem;}
-.log-stream::-webkit-scrollbar{width:3px;}
-.log-stream::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:10px;}
-.log-entry{display:flex;gap:1rem;padding:0.28rem 0;border-bottom:1px solid rgba(255,255,255,0.03);animation:lgin 0.35s ease;}
-@keyframes lgin{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
-.log-t{color:var(--text-muted);flex-shrink:0;width:78px;}
-.log-l{flex-shrink:0;width:46px;font-weight:700;}
-.log-l.ok{color:var(--accent);}
-.log-l.warn{color:var(--warning);}
-.log-l.good{color:var(--success);}
-.log-l.err{color:var(--danger);}
-.log-m{color:var(--text-secondary);}
-.log-m .hl{color:var(--text-primary);}
-.hw-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
-.hw-hd{padding:1.2rem 1.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;}
-.hw-hd h4{font-size:0.93rem;font-weight:700;display:flex;align-items:center;gap:0.45rem;}
-.hw-hd h4 i{color:var(--accent);}
-.hw-srch{margin-left:auto;display:flex;align-items:center;gap:0.45rem;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:0.38rem 0.75rem;}
-.hw-srch i{color:var(--text-muted);font-size:0.78rem;}
-.hw-srch input{background:transparent;border:none;outline:none;font-family:'JetBrains Mono',monospace;font-size:0.76rem;color:var(--text-primary);width:150px;}
-.hw-srch input::placeholder{color:var(--text-muted);}
-table{width:100%;border-collapse:collapse;}
-thead th{padding:0.75rem 1.4rem;text-align:left;font-size:0.66rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;font-weight:600;border-bottom:1px solid var(--border);}
-tbody tr{border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.18s;cursor:none;}
-tbody tr:last-child{border:none;}
-tbody tr:hover{background:rgba(255,255,255,0.03);}
-tbody td{padding:0.82rem 1.4rem;font-size:0.81rem;color:var(--text-secondary);vertical-align:middle;}
-tbody td:first-child{font-family:'JetBrains Mono',monospace;font-size:0.77rem;color:var(--text-primary);font-weight:600;}
-.td-chip{display:inline-block;padding:0.17rem 0.52rem;border-radius:5px;font-size:0.66rem;font-weight:600;font-family:'JetBrains Mono',monospace;}
-.tc{background:rgba(0,102,204,0.15);color:#60a5fa;border:1px solid rgba(0,102,204,0.3);}
-.ts{background:rgba(8,145,178,0.15);color:#22d3ee;border:1px solid rgba(8,145,178,0.3);}
-.tn{background:rgba(124,58,237,0.15);color:#a78bfa;border:1px solid rgba(124,58,237,0.3);}
-.tm{background:rgba(5,150,105,0.15);color:#34d399;border:1px solid rgba(5,150,105,0.3);}
-.hb{width:76px;height:6px;background:rgba(255,255,255,0.06);border-radius:10px;overflow:hidden;}
-.hbf{height:100%;border-radius:10px;}
-.sp{display:inline-flex;align-items:center;gap:0.32rem;font-size:0.68rem;font-family:'JetBrains Mono',monospace;padding:0.18rem 0.55rem;border-radius:8px;}
-.sp-on{background:rgba(16,185,129,0.1);color:var(--success);border:1px solid rgba(16,185,129,0.3);}
-.sp-mn{background:rgba(245,158,11,0.1);color:var(--warning);border:1px solid rgba(245,158,11,0.3);}
-.sp-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
-footer{background:var(--bg-elevated);border-top:1px solid var(--border);padding:3.5rem 5% 2rem;}
-.footer-content{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:4rem;margin-bottom:2.5rem;}
-.footer-brand h3{font-size:1.4rem;margin-bottom:0.8rem;background:linear-gradient(135deg,var(--accent),var(--primary));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
-.footer-brand p{color:var(--text-secondary);font-size:0.88rem;line-height:1.7;margin-bottom:1.2rem;}
-.footer-social{display:flex;gap:0.8rem;}
-.fsl{width:36px;height:36px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);transition:all 0.3s;text-decoration:none;}
-.fsl:hover{background:var(--accent);color:var(--bg-dark);}
-.footer-section h4{font-size:0.9rem;margin-bottom:1rem;}
-.footer-links{display:flex;flex-direction:column;gap:0.5rem;}
-.footer-links a{color:var(--text-secondary);text-decoration:none;transition:all 0.3s;font-size:0.85rem;}
-.footer-links a:hover{color:var(--accent);padding-left:4px;}
-.footer-bottom{text-align:center;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--text-muted);font-size:0.8rem;max-width:1400px;margin:0 auto;}
-.fade-up{opacity:0;transform:translateY(28px);transition:all 0.65s ease-out;}
-.fade-up.visible{opacity:1;transform:translateY(0);}
-@media(max-width:1024px){.live-stats{grid-template-columns:repeat(2,1fr);}.dials-grid{grid-template-columns:repeat(2,1fr);}.footer-content{grid-template-columns:1fr;gap:2rem;}}
-@media(max-width:768px){.nav-links{position:fixed;top:70px;left:-100%;width:100%;background:rgba(10,14,39,0.98);backdrop-filter:blur(20px);flex-direction:column;padding:2rem;gap:1.5rem;transition:left 0.3s;border-bottom:1px solid var(--border);}.nav-links.active{left:0;}.mobile-toggle{display:block;}.page-hero h1{font-size:2.4rem;}.dials-grid{grid-template-columns:1fr 1fr;}.dm-grid{grid-template-columns:1fr 1fr;}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Anudeep Adari</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Archivo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0066cc; --primary-dark: #004999; --accent: #00d4ff;
+            --bg-dark: #0a0e27; --bg-card: #141829; --bg-elevated: #1a1f3a;
+            --text-primary: #e8eaf0; --text-secondary: #a0a8c0; --text-muted: #6b7280;
+            --success: #10b981; --border: rgba(255,255,255,0.08);
+            --shadow: 0 8px 32px rgba(0,0,0,0.3); --shadow-lg: 0 20px 60px rgba(0,0,0,0.4);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Archivo', sans-serif; background: var(--bg-dark); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; }
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.03; background-image: linear-gradient(90deg, var(--primary) 1px, transparent 1px), linear-gradient(0deg, var(--primary) 1px, transparent 1px); background-size: 50px 50px; animation: gridScroll 20s linear infinite; }
+        @keyframes gridScroll { 0% { transform: translate(0,0); } 100% { transform: translate(50px,50px); } }
+
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(10,14,39,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 5%; transition: all 0.3s ease; }
+        nav.scrolled { background: rgba(10,14,39,0.97); box-shadow: var(--shadow); }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 0; }
+        .logo { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+        .nav-links { display: flex; gap: 2.5rem; align-items: center; }
+        .nav-links a { font-weight: 500; font-size: 0.95rem; color: var(--text-secondary); text-decoration: none; position: relative; transition: all 0.3s ease; }
+        .nav-links a.active { color: var(--accent); }
+        .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s ease; }
+        .nav-links a:hover { color: var(--text-primary); }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+        .btn-contact { padding: 0.6rem 1.5rem; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; text-decoration: none; }
+        .btn-contact:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,102,204,0.4); }
+        .mobile-toggle { display: none; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; background: none; border: none; }
+
+        .page-hero { padding: 140px 5% 60px; max-width: 1400px; margin: 0 auto; }
+        .page-breadcrumb { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .page-breadcrumb a { color: var(--accent); text-decoration: none; }
+        .page-hero h1 { font-size: 3.5rem; font-weight: 900; line-height: 1.1; margin-bottom: 1rem; }
+        .page-hero p { font-size: 1.1rem; color: var(--text-secondary); max-width: 650px; }
+
+        .page-content { padding: 0 5% 6rem; max-width: 1400px; margin: 0 auto; }
+        .about-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 4rem; }
+        .about-sidebar { position: sticky; top: 120px; height: fit-content; }
+
+        .sidebar-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem; text-align: center; position: relative; overflow: hidden; }
+        .sidebar-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+        .avatar-large { width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--primary); margin: 0 auto 1.5rem; background: linear-gradient(135deg, var(--primary-dark), var(--bg-elevated)); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--accent); box-shadow: 0 10px 40px rgba(0,102,204,0.3); }
+        .sidebar-name { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem; }
+        .sidebar-role { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem; }
+        .sidebar-status { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--success); padding: 0.3rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .status-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; animation: pulse 2s ease-in-out infinite; flex-shrink: 0; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .sidebar-info { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.8rem; text-align: left; }
+        .info-row { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.85rem; }
+        .info-icon { color: var(--accent); width: 16px; margin-top: 2px; flex-shrink: 0; }
+        .info-label { color: var(--text-muted); min-width: 60px; }
+        .info-value { color: var(--text-primary); font-weight: 500; }
+
+        .sidebar-certs { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+        .cert-badge { padding: 0.35rem 0.8rem; background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.25); border-radius: 20px; font-size: 0.7rem; color: var(--accent); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+        .about-main { display: flex; flex-direction: column; gap: 2.5rem; }
+        .content-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; }
+        .content-block h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.2rem; color: var(--accent); display: flex; align-items: center; gap: 0.75rem; }
+        .content-block p { color: var(--text-secondary); line-height: 1.8; margin-bottom: 1rem; font-size: 1rem; }
+        .content-block p:last-child { margin-bottom: 0; }
+
+        .exp-item { display: flex; gap: 1.5rem; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+        .exp-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .exp-logo { width: 56px; height: 56px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--accent); flex-shrink: 0; }
+        .exp-body h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem; }
+        .exp-company { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
+        .exp-period { color: var(--text-muted); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; margin-bottom: 0.75rem; }
+        .exp-desc { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.75; }
+        .exp-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+        .exp-tag { padding: 0.2rem 0.6rem; background: rgba(0,102,204,0.12); border: 1px solid rgba(0,102,204,0.25); border-radius: 4px; font-size: 0.72rem; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+
+        .edu-item { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .edu-item:last-child { margin-bottom: 0; }
+        .edu-icon { width: 48px; height: 48px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--accent); flex-shrink: 0; }
+        .edu-body h3 { font-size: 1.05rem; font-weight: 700; }
+        .edu-school { color: var(--accent); font-size: 0.88rem; font-weight: 600; }
+        .edu-year { color: var(--text-muted); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; margin-top: 0.2rem; }
+
+        .values-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; }
+        .value-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; transition: all 0.3s ease; }
+        .value-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+        .value-icon { font-size: 2rem; color: var(--accent); margin-bottom: 0.75rem; display: block; }
+        .value-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .value-card p { font-size: 0.8rem; color: var(--text-secondary); }
+
+        footer { background: var(--bg-elevated); border-top: 1px solid var(--border); padding: 4rem 5% 2rem; margin-top: 4rem; }
+        .footer-content { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4rem; margin-bottom: 3rem; }
+        .footer-brand h3 { font-size: 1.6rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .footer-brand p { color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.5rem; }
+        .social-links { display: flex; gap: 1rem; }
+        .social-link { width: 40px; height: 40px; background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); transition: all 0.3s ease; text-decoration: none; }
+        .social-link:hover { background: var(--accent); color: var(--bg-dark); transform: translateY(-3px); }
+        .footer-section h4 { font-size: 1rem; margin-bottom: 1.2rem; color: var(--text-primary); }
+        .footer-links { display: flex; flex-direction: column; gap: 0.6rem; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem; }
+        .footer-links a:hover { color: var(--accent); padding-left: 5px; }
+        .footer-bottom { text-align: center; padding-top: 2rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem; }
+
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 1024px) { .about-grid { grid-template-columns: 1fr; } .about-sidebar { position: static; } .footer-content { grid-template-columns: 1fr; gap: 2rem; } }
+        @media (max-width: 768px) { .nav-links { position: fixed; top: 70px; left: -100%; width: 100%; background: rgba(10,14,39,0.98); backdrop-filter: blur(20px); flex-direction: column; padding: 2rem; gap: 1.5rem; transition: left 0.3s ease; border-bottom: 1px solid var(--border); } .nav-links.active { left: 0; } .mobile-toggle { display: block; } .page-hero h1 { font-size: 2.5rem; } }
+    </style>
 </head>
 <body>
-
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cring"></div>
-<canvas id="bgCanvas"></canvas>
+<div class="bg-animation"></div>
 
 <nav id="navbar">
-  <div class="nav-container">
-    <a href="index.html" class="logo">&lt;/anudeep&gt;</a>
-    <div class="nav-links" id="navLinks">
-      <a href="index.html">Home</a><a href="about.html">About</a>
-      <a href="lifecycle.html">Lifecycle</a><a href="sops.html">SOPs</a>
-      <a href="projects.html">Projects</a><a href="skills.html">Skills</a>
-      <a href="datacenter.html" class="active">Datacenter</a>
-      <a href="contact.html" class="btn-contact">Contact</a>
+    <div class="nav-container">
+        <a href="index.html" class="logo">&lt;/anudeep&gt;</a>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">Home</a>
+            <a href="about.html" class="active">About</a>
+            <a href="lifecycle.html">Lifecycle</a>
+            <a href="sops.html">SOPs</a>
+            <a href="projects.html">Projects</a>
+            <a href="skills.html">Skills</a>
+            <a href="contact.html" class="btn-contact">Contact</a>
+        </div>
+        <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
     </div>
-    <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
-  </div>
 </nav>
 
-<div class="page-hero fade-up">
-  <div class="breadcrumb"><a href="index.html">Home</a><i class="fas fa-chevron-right" style="font-size:0.65rem"></i>Datacenter Infrastructure</div>
-  <h1>Datacenter <span style="background:linear-gradient(135deg,var(--accent),var(--primary));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Infrastructure</span></h1>
-  <p>Live enterprise datacenter view — real-time metrics, interactive topology explorer, and full hardware inventory across compute, storage, network, and management planes.</p>
-  <div class="hero-badges">
-    <span class="hero-badge badge-live">Live Telemetry</span>
-    <span class="hero-badge badge-info"><i class="fas fa-server" style="font-size:0.65rem"></i>24 ESXi Hosts</span>
-    <span class="hero-badge badge-info"><i class="fas fa-hdd" style="font-size:0.65rem"></i>1.2 PB Storage</span>
-    <span class="hero-badge badge-info"><i class="fas fa-network-wired" style="font-size:0.65rem"></i>100G Fabric</span>
-  </div>
-</div>
-
-<div class="metrics-ticker">
-  <div class="ticker-inner" id="ticker"></div>
+<div class="page-hero">
+    <div class="page-breadcrumb">
+        <a href="index.html">Home</a>
+        <i class="fas fa-chevron-right" style="font-size:0.7rem"></i>
+        About
+    </div>
+    <h1>About <span style="background:linear-gradient(135deg,var(--accent),var(--primary));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Me</span></h1>
+    <p>VMware Administrator & Windows Server Specialist with hands-on experience managing enterprise-scale infrastructure at Wipro and Cognizant.</p>
 </div>
 
 <div class="page-content">
+    <div class="about-grid">
 
-  <div class="sec-head fade-up"><span class="sec-tag">// Real-Time Metrics</span><h2 class="sec-title">Live Dashboard</h2></div>
-  <div class="live-stats fade-up">
-    <div class="live-card" style="--glow-color:#00d4ff">
-      <div class="live-card-label">Active VMs</div>
-      <div class="live-card-val" id="v-vm">2,048</div>
-      <div class="live-card-sub"><span class="chg up" id="c-vm">▲ +3 this hour</span></div>
-      <canvas class="spark" id="sp-vm"></canvas>
-    </div>
-    <div class="live-card" style="--glow-color:#10b981">
-      <div class="live-card-label">CPU Utilization</div>
-      <div class="live-card-val" id="v-cpu">42<span style="font-size:1rem">%</span></div>
-      <div class="live-card-sub"><span class="chg up">▲ Healthy across 24 hosts</span></div>
-      <canvas class="spark" id="sp-cpu"></canvas>
-    </div>
-    <div class="live-card" style="--glow-color:#0891b2">
-      <div class="live-card-label">Memory Used</div>
-      <div class="live-card-val" id="v-mem">61<span style="font-size:1rem">%</span></div>
-      <div class="live-card-sub"><span class="chg up">▲ 43.9 TB / 72 TB</span></div>
-      <canvas class="spark" id="sp-mem"></canvas>
-    </div>
-    <div class="live-card" style="--glow-color:#10b981">
-      <div class="live-card-label">Network I/O</div>
-      <div class="live-card-val" id="v-net">68<span style="font-size:0.9rem">Gbps</span></div>
-      <div class="live-card-sub"><span class="chg up">▲ 68% of 100G capacity</span></div>
-      <canvas class="spark" id="sp-net"></canvas>
-    </div>
-  </div>
-
-  <div class="topo-section fade-up">
-    <div class="sec-head"><span class="sec-tag">// Network Topology</span><h2 class="sec-title">Interactive Topology Map <span style="font-size:0.9rem;color:var(--text-muted);font-weight:400">— hover nodes for details</span></h2></div>
-    <div class="topo-wrapper">
-      <div class="topo-toolbar">
-        <span class="topo-toolbar-title">// DC_TOPOLOGY · v2.4 · LIVE</span>
-        <div class="topo-filter">
-          <button class="filter-btn on" onclick="setFilter('all',this)">All</button>
-          <button class="filter-btn" onclick="setFilter('compute',this)">Compute</button>
-          <button class="filter-btn" onclick="setFilter('storage',this)">Storage</button>
-          <button class="filter-btn" onclick="setFilter('network',this)">Network</button>
-          <button class="filter-btn" onclick="setFilter('mgmt',this)">Mgmt</button>
+        <!-- Sidebar -->
+        <div class="about-sidebar fade-up">
+            <div class="sidebar-card">
+                <div class="avatar-large"><i class="fas fa-user-astronaut"></i></div>
+                <div class="sidebar-name">Anudeep Adari</div>
+                <div class="sidebar-role">VMware Administrator · Windows Server</div>
+                <div class="sidebar-status"><span class="status-dot"></span>Open to Opportunities</div>
+                <div class="sidebar-info">
+                    <div class="info-row">
+                        <i class="fas fa-map-marker-alt info-icon"></i>
+                        <span class="info-label">Location</span>
+                        <span class="info-value">Visakhapatnam, India</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-briefcase info-icon"></i>
+                        <span class="info-label">Company</span>
+                        <span class="info-value">Wipro</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-calendar info-icon"></i>
+                        <span class="info-label">Experience</span>
+                        <span class="info-value">3+ Years</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-envelope info-icon"></i>
+                        <span class="info-label">Email</span>
+                        <span class="info-value" style="font-size:0.78rem">anudeepvamsi2@gmail.com</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-phone info-icon"></i>
+                        <span class="info-label">Phone</span>
+                        <span class="info-value">+91 6281102066</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fab fa-linkedin info-icon"></i>
+                        <span class="info-label">LinkedIn</span>
+                        <span class="info-value" style="font-size:0.78rem">
+                            <a href="https://www.linkedin.com/in/anudeepadari/" target="_blank" style="color:var(--accent);text-decoration:none">in/anudeepadari</a>
+                        </span>
+                    </div>
+                </div>
+                <div class="sidebar-certs">
+                    <span class="cert-badge">AZ-900</span>
+                    <span class="cert-badge">vSphere 8</span>
+                    <span class="cert-badge">ITIL V4</span>
+                    <span class="cert-badge">Gen AI</span>
+                    <span class="cert-badge">PM Foundations</span>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="topo-canvas-wrap">
-        <canvas id="topoCanvas"></canvas>
-        <div class="node-tooltip" id="tt"></div>
-      </div>
-    </div>
-  </div>
 
-  <div class="fade-up">
-    <div class="sec-head"><span class="sec-tag">// Architecture</span><h2 class="sec-title">Infrastructure Layers <span style="font-size:0.9rem;color:var(--text-muted);font-weight:400">— click to expand</span></h2></div>
-    <div class="layer-stack" id="layerStack"></div>
-  </div>
+        <!-- Main content -->
+        <div class="about-main">
 
-  <div class="fade-up" style="margin-top:3rem;">
-    <div class="sec-head"><span class="sec-tag">// Capacity</span><h2 class="sec-title">Resource Utilization</h2></div>
-    <div class="dials-grid" id="dialsGrid"></div>
-  </div>
+            <div class="content-block fade-up">
+                <h2><i class="fas fa-user"></i> Who I Am</h2>
+                <p>I'm Anudeep Adari, a VMware Administrator & Windows Server Specialist currently working at Wipro, where I manage enterprise-scale VMware vSphere environments, Windows Server infrastructure, and Active Directory for global clients.</p>
+                <p>With over 3 years of hands-on experience across Wipro and Cognizant Technology Solutions, I've delivered complex infrastructure projects for clients like Central Bank of India and Clorox Corporation — managing 150+ virtual machines, performing live vCenter migrations from vSphere 6.0 to 7.0, and hardening 100+ Windows Servers to CIS standards.</p>
+                <p>I'm passionate about infrastructure automation, security compliance, and building systems that are resilient, scalable, and optimized for performance. When I'm not managing infrastructure, I'm writing SOPs, scripting PowerShell automations, and exploring the latest in cloud-native technologies.</p>
+            </div>
 
-  <div class="fade-up">
-    <div class="sec-head"><span class="sec-tag">// System Events</span><h2 class="sec-title">Live Event Stream</h2></div>
-    <div class="log-box">
-      <div class="log-hd">
-        <h4><i class="fas fa-circle" style="font-size:0.55rem"></i>Event Logger</h4>
-        <span class="log-badge">STREAMING</span>
-        <div class="log-ctrl">
-          <button class="log-btn on" id="lpause" onclick="toggleLog()">Pause</button>
-          <button class="log-btn" onclick="clearLog()">Clear</button>
-        </div>
-      </div>
-      <div class="log-stream" id="logStream"></div>
-    </div>
-  </div>
+            <div class="content-block fade-up">
+                <h2><i class="fas fa-briefcase"></i> Work Experience</h2>
 
-  <div class="fade-up">
-    <div class="sec-head"><span class="sec-tag">// Inventory</span><h2 class="sec-title">Hardware Inventory</h2></div>
-    <div class="hw-wrap">
-      <div class="hw-hd">
-        <h4><i class="fas fa-server"></i>Physical Assets — 32 Devices</h4>
-        <div class="hw-srch"><i class="fas fa-search"></i><input type="text" id="hwSrch" placeholder="search assets..." oninput="filterHW(this.value)"></div>
-      </div>
-      <table><thead><tr><th>Device / Model</th><th>Type</th><th>Specs</th><th>Role</th><th>Health</th><th>Status</th></tr></thead>
-      <tbody id="hwBody"></tbody></table>
-    </div>
-  </div>
+                <div class="exp-item">
+                    <div class="exp-logo"><i class="fas fa-building"></i></div>
+                    <div class="exp-body">
+                        <h3>VMware Administrator</h3>
+                        <div class="exp-company">Wipro &nbsp;·&nbsp; Navi Mumbai</div>
+                        <div class="exp-period">Apr 2025 – Present</div>
+                        <div class="exp-desc">Administering Windows Server environments (2008–2022) including OS upgrades, patching cycles, performance tuning, and vulnerability remediation. Managing vSphere with vCenter and ESXi — VM provisioning, snapshot lifecycle, storage tuning, and HA/DRS configurations. Maintaining Active Directory across multiple domains (GPOs, OU structure, FSMO roles, replication health). Automating routine admin tasks via PowerShell and resolving L2/L3 incidents through ServiceNow. Deployed and managed Symantec Endpoint Protection across the enterprise.</div>
+                        <div class="exp-tags">
+                            <span class="exp-tag">VMware vSphere</span>
+                            <span class="exp-tag">vCenter</span>
+                            <span class="exp-tag">ESXi</span>
+                            <span class="exp-tag">Windows Server</span>
+                            <span class="exp-tag">Active Directory</span>
+                            <span class="exp-tag">PowerShell</span>
+                            <span class="exp-tag">WSUS</span>
+                            <span class="exp-tag">ServiceNow</span>
+                            <span class="exp-tag">Symantec EP</span>
+                        </div>
+                    </div>
+                </div>
 
-</div>
+                <div class="exp-item">
+                    <div class="exp-logo"><i class="fas fa-laptop-code"></i></div>
+                    <div class="exp-body">
+                        <h3>Technical Lead</h3>
+                        <div class="exp-company">Cognizant Technology Solutions &nbsp;·&nbsp; Chennai</div>
+                        <div class="exp-period">Jan 2022 – Jul 2024 &nbsp;·&nbsp; 2.5 Years</div>
+                        <div class="exp-desc">Led a complex Active Directory migration from Windows Server 2012 R2 to 2019 for a large-scale enterprise. Engineered and managed a multi-site VMware vSphere infrastructure, executing a live vCenter migration from vSphere 6.0 to 7.0. Reduced server downtime by 25% across EMEA, SA, and NA sites by proactively managing VMware alerts. Handled 20+ service/change requests monthly via ServiceNow and completed 18+ patching and maintenance tasks monthly using ScienceLogic. Provisioned scalable storage via LVMs and configured RAID levels (0, 1, 5, 10).</div>
+                        <div class="exp-tags">
+                            <span class="exp-tag">vSphere 6/7</span>
+                            <span class="exp-tag">vCenter Migration</span>
+                            <span class="exp-tag">AD Migration</span>
+                            <span class="exp-tag">GPO / DNS</span>
+                            <span class="exp-tag">RAID / LVM</span>
+                            <span class="exp-tag">ScienceLogic</span>
+                            <span class="exp-tag">ServiceNow</span>
+                            <span class="exp-tag">ITIL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-block fade-up">
+                <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+                <div class="edu-item">
+                    <div class="edu-icon"><i class="fas fa-university"></i></div>
+                    <div class="edu-body">
+                        <h3>Master of Business Administration — Finance</h3>
+                        <div class="edu-school">Andhra University, Andhra Pradesh, India</div>
+                        <div class="edu-year">Jun 2023 – Jul 2026 &nbsp;·&nbsp; In Progress</div>
+                    </div>
+                </div>
+                <div class="edu-item">
+                    <div class="edu-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="edu-body">
+                        <h3>Bachelor of Commerce</h3>
+                        <div class="edu-school">Andhra University, Andhra Pradesh, India</div>
+                        <div class="edu-year">Jun 2016 – Jul 2019 &nbsp;·&nbsp; Completed</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-block fade-up">
+                <h2><i class="fas fa-heart"></i> What Drives Me</h2>
+                <div class="values-grid">
+                    <div class="value-card">
+                        <span class="value-icon"><i class="fas fa-robot"></i></span>
+                        <h4>Automation First</h4>
+                        <p>Eliminate manual toil with PowerShell scripts and smart tooling.</p>
+                    </div>
+                    <div class="value-card">
+                        <span class="value-icon"><i class="fas fa-shield-alt"></i></span>
+                        <h4>Security by Design</h4>
+                        <p>CIS benchmarks, hardening policies, and least-privilege principles.</p>
+                    </div>
+                    <div class="value-card">
+                        <span class="value-icon"><i class="fas fa-chart-line"></i></span>
+                        <h4>Continuous Learning</h4>
+                        <p>Always chasing the next certification and the latest in cloud tech.</p>
+                    </div>
+                    <div class="value-card">
+                        <span class="value-icon"><i class="fas fa-users"></i></span>
+                        <h4>Client Impact</h4>
+                        <p>Infrastructure that directly enables business outcomes and uptime SLAs.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /.about-main -->
+    </div><!-- /.about-grid -->
+</div><!-- /.page-content -->
 
 <footer>
-  <div class="footer-content">
-    <div class="footer-brand">
-      <h3>Anudeep Adari</h3>
-      <p>Hybrid Cloud Engineer specializing in VMware virtualization and Windows Server infrastructure.</p>
-      <div class="footer-social">
-        <a href="https://linkedin.com" class="fsl" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-        <a href="https://github.com" class="fsl" target="_blank"><i class="fab fa-github"></i></a>
-        <a href="/cdn-cgi/l/email-protection#f69798839293938680979b859fc4b6919b979f9ad895999b" class="fsl"><i class="fas fa-envelope"></i></a>
-      </div>
+    <div class="footer-content">
+        <div class="footer-brand">
+            <h3>Anudeep Adari</h3>
+            <p>VMware Administrator & Windows Server Specialist at Wipro. Passionate about infrastructure automation, hybrid cloud, and enterprise-grade reliability.</p>
+            <div class="social-links">
+                <a href="https://www.linkedin.com/in/anudeepadari/" class="social-link" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://github.com" class="social-link" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="mailto:anudeepvamsi2@gmail.com" class="social-link"><i class="fas fa-envelope"></i></a>
+                <a href="tel:+916281102066" class="social-link"><i class="fas fa-phone"></i></a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h4>Quick Links</h4>
+            <div class="footer-links">
+                <a href="about.html">About</a>
+                <a href="lifecycle.html">Lifecycle</a>
+                <a href="sops.html">SOPs</a>
+                <a href="projects.html">Projects</a>
+                <a href="skills.html">Skills</a>
+            </div>
+        </div>
+        <div class="footer-section">
+            <h4>Contact</h4>
+            <div class="footer-links">
+                <a href="mailto:anudeepvamsi2@gmail.com">anudeepvamsi2@gmail.com</a>
+                <a href="tel:+916281102066">+91 6281102066</a>
+                <a>Visakhapatnam, AP, India</a>
+            </div>
+        </div>
     </div>
-    <div class="footer-section">
-      <h4>Quick Links</h4>
-      <div class="footer-links"><a href="about.html">About</a><a href="lifecycle.html">Lifecycle</a><a href="sops.html">SOPs</a><a href="projects.html">Projects</a><a href="skills.html">Skills</a><a href="datacenter.html">Datacenter</a></div>
-    </div>
-    <div class="footer-section">
-      <h4>Contact</h4>
-      <div class="footer-links"><a href="/cdn-cgi/l/email-protection#d2b3bca7b6b7b7a2a4b3bfa1bbe092b5bfb3bbbefcb1bdbf"><span class="__cf_email__" data-cfemail="0f6e617a6b6a6a7f796e627c663d4f68626e6663216c6062">[email&#160;protected]</span></a><a href="tel:+916281102066">+91 6281102066</a><a>Visakhapatnam, AP</a></div>
-    </div>
-  </div>
-  <div class="footer-bottom"><p>&copy; 2026 Anudeep Adari. All rights reserved.</p></div>
+    <div class="footer-bottom"><p>&copy; 2026 Anudeep Adari. All rights reserved.</p></div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-/* ── CURSOR ── */
-const cur=document.getElementById('cursor'),cring=document.getElementById('cring');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
-(function ra(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;cring.style.left=rx+'px';cring.style.top=ry+'px';requestAnimationFrame(ra);})();
-document.querySelectorAll('a,button,input,.live-card,.layer-row,.dial-card,.chip,.filter-btn,.log-btn').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{cur.classList.add('active');cring.classList.add('active');});
-  el.addEventListener('mouseleave',()=>{cur.classList.remove('active');cring.classList.remove('active');});
-});
+<script>
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', function () {
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
+    });
 
-/* ── PARTICLE BG ── */
-const bgC=document.getElementById('bgCanvas'),bgX=bgC.getContext('2d');
-let pts=[];
-function rzBg(){bgC.width=innerWidth;bgC.height=innerHeight;}rzBg();
-window.addEventListener('resize',rzBg);
-for(let i=0;i<90;i++)pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.5+.3,a:Math.random()*.5+.1});
-function drawBg(){
-  bgX.clearRect(0,0,bgC.width,bgC.height);
-  bgX.strokeStyle='rgba(0,102,204,0.04)';bgX.lineWidth=1;
-  for(let x=0;x<bgC.width;x+=50){bgX.beginPath();bgX.moveTo(x,0);bgX.lineTo(x,bgC.height);bgX.stroke();}
-  for(let y=0;y<bgC.height;y+=50){bgX.beginPath();bgX.moveTo(0,y);bgX.lineTo(bgC.width,y);bgX.stroke();}
-  pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=bgC.width;if(p.x>bgC.width)p.x=0;if(p.y<0)p.y=bgC.height;if(p.y>bgC.height)p.y=0;bgX.beginPath();bgX.arc(p.x,p.y,p.r,0,Math.PI*2);bgX.fillStyle=`rgba(0,212,255,${p.a})`;bgX.fill();});
-  requestAnimationFrame(drawBg);
-}
-drawBg();
+    // Mobile menu toggle
+    document.getElementById('mobileToggle').addEventListener('click', function () {
+        document.getElementById('navLinks').classList.toggle('active');
+        var icon = this.querySelector('i');
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-times');
+    });
 
-/* ── NAV ── */
-window.addEventListener('scroll',()=>document.getElementById('navbar').classList.toggle('scrolled',scrollY>50));
-document.getElementById('mobileToggle').addEventListener('click',function(){document.getElementById('navLinks').classList.toggle('active');const ic=this.querySelector('i');ic.classList.toggle('fa-bars');ic.classList.toggle('fa-times');});
-
-/* ── TICKER ── */
-const td=[{l:'CPU_CLUSTER_A',v:'42%',c:'up'},{l:'MEM_CLUSTER_B',v:'58%',c:'up'},{l:'STORAGE_SAN',v:'80%',c:'dn'},{l:'NET_CORE',v:'68Gbps',c:'up'},{l:'VM_COUNT',v:'2,048',c:'up'},{l:'VMOTION_ACTIVE',v:'3',c:'up'},{l:'HA_EVENTS',v:'0',c:'up'},{l:'DRS_MOVES',v:'14/hr',c:'up'},{l:'BACKUP_OK',v:'TRUE',c:'up'},{l:'UPTIME_SLA',v:'99.98%',c:'up'},{l:'ALERTS',v:'2',c:'dn'},{l:'PATCH_SCORE',v:'98.2%',c:'up'}];
-const tk=document.getElementById('ticker');
-[...td,...td].forEach(t=>{const d=document.createElement('div');d.className='ticker-item';d.innerHTML=`<span>${t.l}</span><span class="val ${t.c}">${t.v}</span>`;tk.appendChild(d);});
-
-/* ── SPARKLINES ── */
-function drawSpark(id,data,color){
-  const c=document.getElementById(id);if(!c)return;
-  const ctx=c.getContext('2d'),w=c.width=c.offsetWidth,h=c.height=c.offsetHeight;
-  const mn=Math.min(...data),mx2=Math.max(...data),rng=mx2-mn||1;
-  ctx.clearRect(0,0,w,h);
-  const g=ctx.createLinearGradient(0,0,0,h);
-  g.addColorStop(0,color.replace('rgb(','rgba(').replace(')',',0.5)'));
-  g.addColorStop(1,color.replace('rgb(','rgba(').replace(')',',0)'));
-  ctx.beginPath();
-  data.forEach((v,i)=>{const x=i/(data.length-1)*w,y=h-(v-mn)/rng*h*.8-h*.1;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
-  ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.closePath();ctx.fillStyle=g;ctx.fill();
-  ctx.beginPath();
-  data.forEach((v,i)=>{const x=i/(data.length-1)*w,y=h-(v-mn)/rng*h*.8-h*.1;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
-  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
-}
-const sd={vm:[2020,2030,2025,2040,2038,2044,2041,2048],cpu:[38,41,44,40,43,42,45,42],mem:[58,60,59,62,61,63,60,61],net:[62,65,70,68,72,67,65,68]};
-setTimeout(()=>{drawSpark('sp-vm',sd.vm,'rgb(0,212,255)');drawSpark('sp-cpu',sd.cpu,'rgb(16,185,129)');drawSpark('sp-mem',sd.mem,'rgb(8,145,178)');drawSpark('sp-net',sd.net,'rgb(16,185,129)');},200);
-
-function randF(b,r){return b+Math.round((Math.random()-.5)*r);}
-setInterval(()=>{
-  const nc=randF(42,6),nm=randF(61,4),nn=randF(68,8),nv=2048+Math.round(Math.random()*10-3);
-  document.getElementById('v-cpu').innerHTML=`${nc}<span style="font-size:1rem">%</span>`;
-  document.getElementById('v-mem').innerHTML=`${nm}<span style="font-size:1rem">%</span>`;
-  document.getElementById('v-net').innerHTML=`${nn}<span style="font-size:0.9rem">Gbps</span>`;
-  document.getElementById('v-vm').textContent=nv.toLocaleString();
-  sd.cpu.shift();sd.cpu.push(nc);sd.mem.shift();sd.mem.push(nm);sd.net.shift();sd.net.push(nn);sd.vm.shift();sd.vm.push(nv);
-  drawSpark('sp-cpu',sd.cpu,'rgb(16,185,129)');drawSpark('sp-mem',sd.mem,'rgb(8,145,178)');drawSpark('sp-net',sd.net,'rgb(16,185,129)');drawSpark('sp-vm',sd.vm,'rgb(0,212,255)');
-},2500);
-
-/* ── TOPOLOGY ── */
-const tC=document.getElementById('topoCanvas'),tX=tC.getContext('2d'),ttEl=document.getElementById('tt');
-let topoFilt='all',hovN=null,af=0;
-const nodes=[
-  {id:'wan', lx:.5, ly:.05, label:'Internet / WAN',    sub:'ExpressRoute · MPLS',      type:'security', em:'🌐', col:'#fb7185', info:{Bandwidth:'10 Gbps',Protocol:'BGP',Uptime:'99.9%'}},
-  {id:'fw',  lx:.5, ly:.18, label:'Palo Alto FW',      sub:'HA Pair · Active/Passive',  type:'security', em:'🔥', col:'#fb7185', info:{Model:'PA-5450',Throughput:'120Gbps',Sessions:'2.1M',Uptime:'99.99%'}},
-  {id:'core',lx:.5, ly:.35, label:'Nexus 9K Core',     sub:'vPC · BGP/OSPF',            type:'network',  em:'⚡', col:'#a78bfa', info:{Model:'9336C-FX2',Ports:'36×100G',Protocol:'EVPN/VXLAN',Uptime:'99.99%'}},
-  {id:'nsx', lx:.2, ly:.35, label:'VMware NSX-T',      sub:'Overlay · Micro-seg',       type:'network',  em:'🔀', col:'#a78bfa', info:{Version:'3.x',Segments:'124',Firewalls:'48',Uptime:'99.97%'}},
-  {id:'lb',  lx:.8, ly:.35, label:'NSX Load Balancer', sub:'L4/L7 · SSL Offload',       type:'network',  em:'⚖️', col:'#a78bfa', info:{VIPs:'32',Throughput:'40Gbps','SSL Sessions':'14K'}},
-  {id:'cA',  lx:.22,ly:.56, label:'vSphere Cluster A', sub:'Production · 12 ESXi',      type:'compute',  em:'💻', col:'#60a5fa', info:{Hosts:'12',vCPUs:'18,432',RAM:'48 TB',VMs:'1,240'}},
-  {id:'cB',  lx:.5, ly:.56, label:'vSphere Cluster B', sub:'Dev/Test · 8 ESXi',         type:'compute',  em:'🖥️', col:'#60a5fa', info:{Hosts:'8',vCPUs:'6,144',RAM:'18 TB',VMs:'620'}},
-  {id:'mgmt',lx:.72,ly:.56, label:'Mgmt Cluster',      sub:'vCenter · NSX · vROps',     type:'mgmt',     em:'⚙️', col:'#34d399', info:{vCenter:'8.x',NSX:'3.x',vROps:'8.6',Hosts:'4'}},
-  {id:'dr',  lx:.88,ly:.56, label:'DR / Azure',        sub:'SRM · 4 ESXi · Blob',       type:'mgmt',     em:'☁️', col:'#fbbf24', info:{Type:'Azure VMware',Region:'South Asia',RPO:'15 min',VMs:'200'}},
-  {id:'san', lx:.15,ly:.8,  label:'Pure FlashArray',   sub:'All-NVMe SAN',              type:'storage',  em:'⚡', col:'#22d3ee', info:{Capacity:'400TB',Protocol:'32G FC',IOPS:'2.4M',Latency:'<0.2ms'}},
-  {id:'nas', lx:.36,ly:.8,  label:'NetApp AFF A400',   sub:'NFS/CIFS NAS',              type:'storage',  em:'📁', col:'#22d3ee', info:{Capacity:'600TB',Protocol:'NFS 4.1',Throughput:'22GBps'}},
-  {id:'vsan',lx:.56,ly:.8,  label:'VMware vSAN 8',     sub:'HCI · All-Flash',           type:'storage',  em:'🗄️', col:'#22d3ee', info:{Capacity:'200TB',Hosts:'8',Policy:'FTT=1',Dedup:'3.2:1'}},
-  {id:'bkp', lx:.76,ly:.8,  label:'Veeam B&R',         sub:'Backup · Replication',      type:'storage',  em:'💾', col:'#22d3ee', info:{Jobs:'148',RPO:'4h',Repo:'200TB',Success:'99.8%'}},
-];
-const edges=[
-  {a:'wan',b:'fw'},{a:'fw',b:'core'},{a:'core',b:'nsx'},{a:'core',b:'lb'},
-  {a:'core',b:'cA'},{a:'core',b:'cB'},{a:'core',b:'mgmt'},{a:'core',b:'dr',dash:1},
-  {a:'nsx',b:'cA'},{a:'lb',b:'cB'},{a:'cA',b:'san'},{a:'cA',b:'nas'},
-  {a:'cB',b:'vsan'},{a:'mgmt',b:'bkp'},
-];
-const fmap={compute:['compute'],storage:['storage'],network:['network','security'],mgmt:['mgmt']};
-function vis(t){return topoFilt==='all'||(fmap[topoFilt]||[]).includes(t);}
-function npos(n){return{x:n.lx*tC.width,y:n.ly*tC.height};}
-function drawTopo(){
-  af++;
-  tC.width=tC.offsetWidth;tC.height=tC.offsetHeight;
-  const w=tC.width,h=tC.height;
-  tX.clearRect(0,0,w,h);
-  edges.forEach(e=>{
-    const na=nodes.find(n=>n.id===e.a),nb=nodes.find(n=>n.id===e.b);if(!na||!nb)return;
-    const va=vis(na.type),vb=vis(nb.type);
-    const pa=npos(na),pb=npos(nb);
-    tX.save();tX.beginPath();tX.moveTo(pa.x,pa.y);tX.lineTo(pb.x,pb.y);
-    tX.setLineDash(e.dash?[6,4]:[]);
-    tX.strokeStyle=(va&&vb)?'rgba(0,212,255,0.18)':'rgba(255,255,255,0.03)';
-    tX.lineWidth=(va&&vb)?1.5:1;tX.stroke();
-    if(!e.dash&&va&&vb&&topoFilt==='all'){
-      const t2=((af*.8)%100)/100;
-      tX.beginPath();tX.arc(pa.x+(pb.x-pa.x)*t2,pa.y+(pb.y-pa.y)*t2,2.5,0,Math.PI*2);
-      tX.fillStyle='rgba(0,212,255,0.9)';tX.fill();
+    // Reveal .fade-up elements — runs on load AND scroll
+    function revealElements() {
+        var elements = document.querySelectorAll('.fade-up');
+        elements.forEach(function (el) {
+            var rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight - 40) {
+                el.classList.add('visible');
+            }
+        });
     }
-    tX.restore();
-  });
-  nodes.forEach(node=>{
-    const v=vis(node.type),p=npos(node),hov=hovN&&hovN.id===node.id;
-    const r=hov?30:24;
-    tX.save();tX.globalAlpha=v?1:0.15;
-    if(v){const pulse=.5+.5*Math.sin(af*.06+(node.lx+node.ly)*10);tX.shadowColor=node.col;tX.shadowBlur=hov?28:8+pulse*8;}
-    tX.beginPath();tX.arc(p.x,p.y,r,0,Math.PI*2);
-    const g=tX.createRadialGradient(p.x-r*.3,p.y-r*.3,0,p.x,p.y,r);
-    g.addColorStop(0,node.col+'33');g.addColorStop(1,node.col+'11');
-    tX.fillStyle=g;tX.fill();
-    tX.shadowBlur=0;tX.strokeStyle=node.col+(hov?'cc':'55');tX.lineWidth=hov?2:1.5;tX.stroke();
-    tX.font=`${hov?16:13}px serif`;tX.textAlign='center';tX.textBaseline='middle';tX.fillStyle='white';tX.fillText(node.em,p.x,p.y);
-    tX.font=`600 ${hov?11:9.5}px 'JetBrains Mono'`;tX.fillStyle=hov?node.col:'rgba(232,234,240,0.85)';tX.fillText(node.label,p.x,p.y+r+13);
-    if(hov){tX.font=`8.5px 'JetBrains Mono'`;tX.fillStyle='rgba(160,168,192,0.75)';tX.fillText(node.sub,p.x,p.y+r+25);}
-    tX.restore();
-  });
-  requestAnimationFrame(drawTopo);
-}
-drawTopo();
-tC.addEventListener('mousemove',e=>{
-  const rect=tC.getBoundingClientRect(),ex=e.clientX-rect.left,ey=e.clientY-rect.top;
-  hovN=null;
-  nodes.forEach(n=>{if(!vis(n.type))return;const p=npos(n);if(Math.hypot(ex-p.x,ey-p.y)<30)hovN=n;});
-  if(hovN){
-    ttEl.innerHTML=`<div class="tt-head" style="color:${hovN.col}">${hovN.em} ${hovN.label}<span class="tt-chip">${hovN.type.toUpperCase()}</span></div>${Object.entries(hovN.info).map(([k,v])=>`<div class="tt-row"><span>${k}</span><span>${v}</span></div>`).join('')}<div class="tt-status"><span class="tt-dot"></span>ONLINE · 99.9% uptime</div>`;
-    let tx=ex+18,ty=ey-20;if(tx+230>tC.width)tx=ex-240;if(ty+160>tC.height)ty=ey-160;
-    ttEl.style.left=tx+'px';ttEl.style.top=ty+'px';ttEl.classList.add('show');
-  }else ttEl.classList.remove('show');
-});
-tC.addEventListener('mouseleave',()=>{ttEl.classList.remove('show');hovN=null;});
-function setFilter(f,btn){topoFilt=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
 
-/* ── LAYER STACK ── */
-const layers=[
-  {name:'Security & Compliance',desc:'// Perimeter · Identity · Audit',icon:'fas fa-shield-alt',col:'#be123c',util:94,
-   items:[{i:'fas fa-fire',t:'Palo Alto PA-5450 HA'},{i:'fas fa-id-badge',t:'Active Directory (AD DS)'},{i:'fas fa-key',t:'CyberArk PAM'},{i:'fas fa-eye',t:'Splunk SIEM'},{i:'fas fa-lock',t:'SSL/TLS Termination'},{i:'fas fa-clipboard-check',t:'ISO 27001 Compliance'}],
-   metrics:[{v:'0',l:'Active Threats'},{v:'98.2%',l:'Patch Compliance'},{v:'100%',l:'MFA Coverage'}]},
-  {name:'Network Fabric',desc:'// Switching · Routing · SDN · LB',icon:'fas fa-network-wired',col:'#7c3aed',util:68,
-   items:[{i:'fas fa-sitemap',t:'Cisco Nexus 9336C-FX2 Core'},{i:'fas fa-network-wired',t:'Cisco Nexus 93180 ToR ×4'},{i:'fas fa-project-diagram',t:'VMware NSX-T 3.x'},{i:'fas fa-balance-scale',t:'NSX Load Balancer'},{i:'fas fa-exchange-alt',t:'BGP/OSPF Routing'},{i:'fas fa-cloud',t:'Azure ExpressRoute 10G'},{i:'fas fa-wifi',t:'OOB Management 10G'}],
-   metrics:[{v:'68 Gbps',l:'Throughput'},{v:'<0.5ms',l:'Latency'},{v:'99.99%',l:'Uptime'}]},
-  {name:'Compute',desc:'// VMware vSphere 8.x · ESXi · HA/DRS',icon:'fas fa-microchip',col:'#0066cc',util:75,
-   items:[{i:'fas fa-server',t:'Dell PowerEdge R750 ×8'},{i:'fas fa-server',t:'HPE ProLiant DL380 ×8'},{i:'fas fa-server',t:'Cisco UCS B200 M6 ×8'},{i:'fas fa-layer-group',t:'vSphere Cluster A (Prod)'},{i:'fas fa-layer-group',t:'vSphere Cluster B (Dev)'},{i:'fas fa-random',t:'vMotion 25G'},{i:'fas fa-heartbeat',t:'HA · DRS · Fault Tolerance'}],
-   metrics:[{v:'42%',l:'CPU Avg'},{v:'61%',l:'RAM Avg'},{v:'2,048',l:'VMs Running'}]},
-  {name:'Storage',desc:'// SAN · NAS · vSAN · Object Storage',icon:'fas fa-database',col:'#0891b2',util:80,
-   items:[{i:'fas fa-bolt',t:'Pure FlashArray//X (All-NVMe)'},{i:'fas fa-hdd',t:'NetApp AFF A400 (NAS)'},{i:'fas fa-th',t:'VMware vSAN 8 (HCI)'},{i:'fas fa-cloud-upload-alt',t:'Azure Blob (Tier 3)'},{i:'fas fa-redo',t:'Veeam Backup & Replication'},{i:'fas fa-link',t:'32G FC SAN Fabric'}],
-   metrics:[{v:'1.2 PB',l:'Total Capacity'},{v:'80%',l:'SAN Utilization'},{v:'<0.2ms',l:'NVMe Latency'}]},
-  {name:'Management & Automation',desc:'// Orchestration · Monitoring · DevOps',icon:'fas fa-cogs',col:'#059669',util:45,
-   items:[{i:'fas fa-desktop',t:'vCenter Server 8.x'},{i:'fas fa-cloud',t:'VMware Aria Suite'},{i:'fas fa-terminal',t:'PowerCLI Automation'},{i:'fas fa-code-branch',t:'Ansible Playbooks'},{i:'fas fa-chart-line',t:'vROps Monitoring'},{i:'fas fa-ticket-alt',t:'ServiceNow ITSM'},{i:'fas fa-bug',t:'Dynatrace APM'},{i:'fas fa-scroll',t:'ELK Log Stack'}],
-   metrics:[{v:'148',l:'Active Jobs'},{v:'14/hr',l:'DRS Moves'},{v:'0',l:'Open P1 Tickets'}]},
-];
-const lstack=document.getElementById('layerStack');
-layers.forEach(layer=>{
-  const row=document.createElement('div');row.className='layer-row';row.style.setProperty('--lc',layer.col);
-  row.innerHTML=`<div class="layer-top"><div class="l-icon"><i class="${layer.icon}" style="color:${layer.col}"></i></div><div class="l-meta"><div class="l-name">${layer.name}</div><div class="l-desc">${layer.desc}</div></div><div class="l-right"><div class="l-util"><div class="l-util-num" style="color:${layer.col}">${layer.util}%</div><div class="l-util-lbl">Utilization</div></div><div><div class="mini-bar"><div class="mini-fill" data-w="${layer.util}"></div></div></div><button class="l-tog"><i class="fas fa-chevron-down"></i></button></div></div><div class="l-detail"><div class="chips">${layer.items.map(it=>`<div class="chip"><i class="${it.i}" style="color:${layer.col}"></i>${it.t}</div>`).join('')}</div><div class="dm-grid">${layer.metrics.map(m=>`<div class="dm"><div class="dm-val">${m.v}</div><div class="dm-lbl">${m.l}</div></div>`).join('')}</div></div>`;
-  row.querySelector('.layer-top').addEventListener('click',()=>{const was=row.classList.contains('open');document.querySelectorAll('.layer-row').forEach(r=>r.classList.remove('open'));if(!was)row.classList.add('open');});
-  lstack.appendChild(row);
-});
-setTimeout(()=>document.querySelectorAll('.mini-fill').forEach(el=>el.style.width=el.dataset.w+'%'),500);
-
-/* ── DIALS ── */
-const dialDef=[
-  {title:'CPU Utilization',val:42,sub:'18,432 / 24,576 vCores',col:'#00d4ff'},
-  {title:'Memory Used',val:61,sub:'43.9 TB / 72 TB',col:'#0891b2'},
-  {title:'SAN Storage',val:80,sub:'320 TB / 400 TB',col:'#22d3ee'},
-  {title:'NAS Storage',val:80,sub:'480 TB / 600 TB',col:'#7c3aed'},
-  {title:'Core Network',val:68,sub:'68 Gbps / 100 Gbps',col:'#a78bfa'},
-  {title:'vSAN Cluster',val:70,sub:'140 TB / 200 TB',col:'#059669'},
-];
-const dg=document.getElementById('dialsGrid');
-dialDef.forEach(d=>{
-  const c=document.createElement('div');c.className='dial-card';
-  const circ=345,off=circ-circ*d.val/100;
-  c.innerHTML=`<div class="dial-wrap"><svg class="dial-svg" viewBox="0 0 120 120"><circle class="dial-bg" cx="60" cy="60" r="55"/><circle class="dial-fill" cx="60" cy="60" r="55" stroke="${d.col}" data-off="${off}"/></svg><div class="dial-center"><div class="dial-pct" style="color:${d.col}">${d.val}%</div><div class="dial-unit">used</div></div></div><div class="dial-title">${d.title}</div><div class="dial-sub">${d.sub}</div>`;
-  dg.appendChild(c);
-});
-const dObs=new IntersectionObserver(ents=>{ents.forEach(e=>{if(e.isIntersecting){e.target.querySelectorAll('.dial-fill').forEach(f=>{f.style.strokeDashoffset=f.dataset.off;});dObs.unobserve(e.target);}});},{threshold:.2});
-dg.querySelectorAll('.dial-card').forEach(c=>dObs.observe(c));
-
-/* ── LOG ── */
-const ls=document.getElementById('logStream');
-let logOn=true;
-const msgs=[
-  {l:'INFO',t:'ok',m:'vMotion completed: <span class="hl">vm-prod-db-042</span> → esxi-host-09'},
-  {l:'INFO',t:'ok',m:'DRS rebalanced <span class="hl">Cluster A</span> — 3 VMs migrated'},
-  {l:'WARN',t:'warn',m:'SAN utilization above 80%: <span class="hl">Pure FlashArray</span>'},
-  {l:'INFO',t:'ok',m:'Snapshot created: <span class="hl">vm-web-app-117</span> — pre-patch'},
-  {l:'OK  ',t:'good',m:'Backup completed: <span class="hl">prod-cluster-full</span> — 1.2 TB / 4h'},
-  {l:'INFO',t:'ok',m:'NSX rule updated: <span class="hl">PCI-segment-04</span>'},
-  {l:'INFO',t:'ok',m:'ESXi patched: <span class="hl">esxi-host-11</span> — ESXi 8.0 U2b'},
-  {l:'WARN',t:'warn',m:'Certificate expires in 30 days: <span class="hl">vcenter.internal</span>'},
-  {l:'INFO',t:'ok',m:'VM provisioned: <span class="hl">vm-dev-test-229</span> — 4 vCPU · 16 GB'},
-  {l:'OK  ',t:'good',m:'vSAN health check passed: <span class="hl">Cluster B</span>'},
-  {l:'INFO',t:'ok',m:'PowerCLI job done: <span class="hl">bulk-snapshot-cleanup.ps1</span> — 214 deleted'},
-  {l:'INFO',t:'ok',m:'ExpressRoute BGP stable: <span class="hl">Azure South Asia</span>'},
-  {l:'WARN',t:'warn',m:'High DRS rate on <span class="hl">Cluster A</span>: 14 moves/hr'},
-  {l:'OK  ',t:'good',m:'Alarm cleared: <span class="hl">esxi-host-03</span> CPU below threshold'},
-  {l:'INFO',t:'ok',m:'Replication synced: <span class="hl">vm-prod-app-001</span> → DR site'},
-];
-let li=0;
-function addLog(){
-  if(!logOn)return;
-  const m=msgs[li%msgs.length];li++;
-  const now=new Date(),ts=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-  const e=document.createElement('div');e.className='log-entry';
-  e.innerHTML=`<span class="log-t">${ts}</span><span class="log-l ${m.t}">${m.l}</span><span class="log-m">${m.m}</span>`;
-  ls.insertBefore(e,ls.firstChild);
-  if(ls.children.length>30)ls.removeChild(ls.lastChild);
-}
-for(let i=0;i<8;i++)addLog();
-setInterval(addLog,2800);
-function toggleLog(){logOn=!logOn;const b=document.getElementById('lpause');b.textContent=logOn?'Pause':'Resume';b.classList.toggle('on',logOn);}
-function clearLog(){ls.innerHTML='';}
-
-/* ── HW TABLE ── */
-const hwD=[
-  {name:'Dell PowerEdge R750 ×8',   type:'tc',tl:'Compute', specs:'2× Xeon Gold 6348 · 1.5TB RAM · 25G',    role:'Prod ESXi Cluster A',      h:97,s:'on'},
-  {name:'HPE ProLiant DL380 Gen10 ×8',type:'tc',tl:'Compute',specs:'2× Xeon Silver 4314 · 768GB · 25G',     role:'Dev/Test Cluster B',       h:94,s:'on'},
-  {name:'Cisco UCS B200 M6 ×8',     type:'tc',tl:'Compute', specs:'2× Xeon Gold 6330 · 1TB RAM · 40G VIC', role:'Mgmt & vSAN Cluster',      h:98,s:'on'},
-  {name:'Pure Storage FlashArray//X',type:'ts',tl:'Storage', specs:'All-NVMe · 400TB · 32G FC',             role:'Primary SAN (Tier 1)',      h:99,s:'on'},
-  {name:'NetApp AFF A400 HA Pair',  type:'ts',tl:'Storage', specs:'600TB · NFS/CIFS · 25G iSCSI',           role:'File Services / NAS',      h:96,s:'on'},
-  {name:'VMware vSAN 8 Cluster',    type:'ts',tl:'Storage', specs:'8-node HCI · 200TB · All-Flash',         role:'HCI Storage Cluster',      h:95,s:'on'},
-  {name:'HPE StoreOnce 5200 ×2',    type:'ts',tl:'Storage', specs:'200TB · Deduplication · Catalyst',       role:'Backup Repository',        h:91,s:'on'},
-  {name:'Cisco Nexus 9336C-FX2 ×2', type:'tn',tl:'Network', specs:'36×100G QSFP28 · vPC · EVPN/VXLAN',     role:'Core Switching (HA)',       h:100,s:'on'},
-  {name:'Cisco Nexus 93180YC ×4',   type:'tn',tl:'Network', specs:'48×25G + 6×100G uplinks',               role:'Top-of-Rack Switching',     h:100,s:'on'},
-  {name:'Palo Alto PA-5450 HA Pair',type:'tn',tl:'Network', specs:'120 Gbps · Panorama managed',            role:'Perimeter Firewall',        h:100,s:'on'},
-  {name:'Dell PowerEdge R640 ×2',   type:'tm',tl:'Mgmt',    specs:'2× Xeon Silver 4214R · 256GB',          role:'vCenter / NSX Manager',    h:78,s:'mn'},
-  {name:'Veeam Backup Server',       type:'tm',tl:'Mgmt',    specs:'Win Server 2022 · 32 vCPU · 128GB',     role:'Backup Orchestration',     h:99,s:'on'},
-];
-function renderHW(data){
-  document.getElementById('hwBody').innerHTML=data.map(r=>{
-    const hc=r.h>=95?'#10b981':r.h>=80?'#f59e0b':'#ef4444';
-    return `<tr><td>${r.name}</td><td><span class="td-chip ${r.type}">${r.tl}</span></td><td>${r.specs}</td><td>${r.role}</td><td><div style="display:flex;align-items:center;gap:0.45rem"><div class="hb"><div class="hbf" style="width:${r.h}%;background:${hc}"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:${hc}">${r.h}%</span></div></td><td><span class="sp ${r.s==='on'?'sp-on':'sp-mn'}"><span class="sp-dot"></span>${r.s==='on'?'Online':'Maintenance'}</span></td></tr>`;
-  }).join('');
-}
-renderHW(hwD);
-function filterHW(q){renderHW(hwD.filter(r=>[r.name,r.tl,r.role].some(s=>s.toLowerCase().includes(q.toLowerCase()))));}
+    // Run immediately, on scroll, and after full page load
+    revealElements();
+    window.addEventListener('scroll', revealElements);
+    window.addEventListener('load', revealElements);
+</script>
+</body>
+</html>
