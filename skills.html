@@ -88,13 +88,14 @@
 <nav id="navbar">
     <div class="nav-container">
         <a href="index.html" class="logo">&lt;/anudeep&gt;</a>
-        <div class="nav-links" id="navLinks">
+                <div class="nav-links" id="navLinks">
             <a href="index.html">Home</a>
             <a href="about.html">About</a>
             <a href="lifecycle.html">Lifecycle</a>
             <a href="sops.html">SOPs</a>
             <a href="projects.html">Projects</a>
             <a href="skills.html" class="active">Skills</a>
+            <a href="datacenter.html">Datacenter</a>
             <a href="contact.html" class="btn-contact">Contact</a>
         </div>
         <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
@@ -216,10 +217,18 @@
                 </div>
             </div>
             <div class="cert-card">
-                <div class="cert-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="cert-icon"><i class="fab fa-aws"></i></div>
                 <div class="cert-body">
-                    <h4>VMware NSX Network Virtualization</h4>
-                    <div class="cert-issuer">VMware</div>
+                    <h4>AWS Certified Solutions Architect — Associate (SAA-C03)</h4>
+                    <div class="cert-issuer">Amazon Web Services</div>
+                    <div class="cert-status"><i class="fas fa-check-circle"></i> Certified</div>
+                </div>
+            </div>
+            <div class="cert-card">
+                <div class="cert-icon"><i class="fab fa-microsoft"></i></div>
+                <div class="cert-body">
+                    <h4>AZ-800: Administering Windows Server Hybrid Core Infrastructure</h4>
+                    <div class="cert-issuer">Microsoft</div>
                     <div class="cert-status"><i class="fas fa-check-circle"></i> Certified</div>
                 </div>
             </div>
@@ -241,17 +250,21 @@
             <h3>Anudeep Adari</h3>
             <p>Hybrid Cloud Engineer specializing in VMware virtualization and Windows Server infrastructure.</p>
             <div class="social-links">
-                <a href="https://linkedin.com" class="social-link" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                <a href="https://www.linkedin.com/in/anudeepadari/" class="social-link" target="_blank"><i class="fab fa-linkedin-in"></i></a>
                 <a href="https://github.com" class="social-link" target="_blank"><i class="fab fa-github"></i></a>
                 <a href="mailto:anudeepvamsi2@gmail.com" class="social-link"><i class="fas fa-envelope"></i></a>
+                <a href="tel:+916281102066" class="social-link"><i class="fas fa-phone"></i></a>
             </div>
         </div>
         <div class="footer-section">
             <h4>Quick Links</h4>
             <div class="footer-links">
-                <a href="about.html">About</a><a href="lifecycle.html">Lifecycle</a>
-                <a href="sops.html">SOPs</a><a href="projects.html">Projects</a>
+                <a href="about.html">About</a>
+                <a href="lifecycle.html">Lifecycle</a>
+                <a href="sops.html">SOPs</a>
+                <a href="projects.html">Projects</a>
                 <a href="skills.html">Skills</a>
+                <a href="datacenter.html">Datacenter</a>
             </div>
         </div>
         <div class="footer-section">
@@ -259,22 +272,14 @@
             <div class="footer-links">
                 <a href="mailto:anudeepvamsi2@gmail.com">anudeepvamsi2@gmail.com</a>
                 <a href="tel:+916281102066">+91 6281102066</a>
+                <a>Visakhapatnam, AP, India</a>
             </div>
         </div>
     </div>
     <div class="footer-bottom"><p>&copy; 2026 Anudeep Adari. All rights reserved.</p></div>
 </footer>
-
 <script>
-    const navbar = document.getElementById('navbar');
-    window.addEventListener('scroll', () => { navbar.classList.toggle('scrolled', window.scrollY > 50); });
-    document.getElementById('mobileToggle').addEventListener('click', function() {
-        document.getElementById('navLinks').classList.toggle('active');
-        const icon = this.querySelector('i');
-        icon.classList.toggle('fa-bars'); icon.classList.toggle('fa-times');
-    });
-    // Skill bar animation on scroll
-    const skillObserver = new IntersectionObserver((entries) => {
+    const skillObs = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.querySelectorAll('.skill-progress').forEach(bar => {
@@ -282,11 +287,28 @@
                     setTimeout(() => { bar.style.width = w + '%'; }, 100);
                 });
                 entry.target.classList.add('visible');
-                skillObserver.unobserve(entry.target);
+                skillObs.unobserve(entry.target);
             }
         });
     }, { threshold: 0.15 });
-    document.querySelectorAll('.skill-cat, .fade-up').forEach(el => skillObserver.observe(el));
+    document.querySelectorAll('.skill-cat, .fade-up').forEach(el => skillObs.observe(el));
+</script>
+
+<script>
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
+    });
+    document.getElementById('mobileToggle').addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('active');
+        const icon = this.querySelector('i');
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-times');
+    });
+    const _fuObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); _fuObs.unobserve(e.target); } });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => _fuObs.observe(el));
 </script>
 </body>
 </html>
