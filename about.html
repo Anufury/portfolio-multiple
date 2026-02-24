@@ -118,7 +118,7 @@
 <nav id="navbar">
     <div class="nav-container">
         <a href="index.html" class="logo">&lt;/anudeep&gt;</a>
-        <div class="nav-links" id="navLinks">
+                <div class="nav-links" id="navLinks">
             <a href="index.html">Home</a>
             <a href="about.html" class="active">About</a>
             <a href="lifecycle.html">Lifecycle</a>
@@ -171,7 +171,7 @@
                     <div class="info-row">
                         <i class="fas fa-envelope info-icon"></i>
                         <span class="info-label">Email</span>
-                        <span class="info-value" style="font-size:0.78rem"><a href="mailto:anudeep.adari@example.com" style="color:var(--accent);text-decoration:none">anudeep.adari@example.com</a></span>
+                        <span class="info-value" style="font-size:0.78rem"><a href="mailto:anudeepvamsi2@gmail.com" style="color:var(--accent);text-decoration:none">anudeepvamsi2@gmail.com</a></span>
                     </div>
                     <div class="info-row">
                         <i class="fas fa-phone info-icon"></i>
@@ -188,10 +188,10 @@
                 </div>
                 <div class="sidebar-certs">
                     <span class="cert-badge">AZ-900</span>
-                    <span class="cert-badge">vSphere 8</span>
+                    <span class="cert-badge">AZ-800</span>
+                    <span class="cert-badge">AWS SAA-C03</span>
                     <span class="cert-badge">ITIL V4</span>
                     <span class="cert-badge">Gen AI</span>
-                    <span class="cert-badge">PM Foundations</span>
                 </div>
             </div>
         </div>
@@ -285,9 +285,7 @@
                         <p>CIS benchmarks, hardening policies, and least-privilege principles.</p>
                     </div>
                     <div class="value-card">
-                        <span class="value-icon"><i class="fas fa-chart-line"></i></span>
-                        <h4>Continuous Learning</h4>
-                        <p>Always chasing the next certification and the latest in cloud tech.</p>
+                        <span class=" the next certification and the latest in cloud tech.</p>
                     </div>
                     <div class="value-card">
                         <span class="value-icon"><i class="fas fa-users"></i></span>
@@ -305,11 +303,11 @@
     <div class="footer-content">
         <div class="footer-brand">
             <h3>Anudeep Adari</h3>
-            <p>VMware Administrator & Windows Server Specialist at Wipro. Passionate about infrastructure automation, hybrid cloud, and enterprise-grade reliability.</p>
+            <p>Hybrid Cloud Engineer specializing in VMware virtualization and Windows Server infrastructure.</p>
             <div class="social-links">
                 <a href="https://www.linkedin.com/in/anudeepadari/" class="social-link" target="_blank"><i class="fab fa-linkedin-in"></i></a>
                 <a href="https://github.com" class="social-link" target="_blank"><i class="fab fa-github"></i></a>
-                <a href="mailto:anudeep.adari@example.com" style="color:var(--accent);text-decoration:none">anudeep.adari@example.com</a>
+                <a href="mailto:anudeepvamsi2@gmail.com" class="social-link"><i class="fas fa-envelope"></i></a>
                 <a href="tel:+916281102066" class="social-link"><i class="fas fa-phone"></i></a>
             </div>
         </div>
@@ -321,12 +319,13 @@
                 <a href="sops.html">SOPs</a>
                 <a href="projects.html">Projects</a>
                 <a href="skills.html">Skills</a>
+                <a href="datacenter.html">Datacenter</a>
             </div>
         </div>
         <div class="footer-section">
             <h4>Contact</h4>
             <div class="footer-links">
-                <a href="mailto:anudeep.adari@example.com" style="color:var(--accent);text-decoration:none">anudeep.adari@example.com</a>
+                <a href="mailto:anudeepvamsi2@gmail.com">anudeepvamsi2@gmail.com</a>
                 <a href="tel:+916281102066">+91 6281102066</a>
                 <a>Visakhapatnam, AP, India</a>
             </div>
@@ -336,32 +335,20 @@
 </footer>
 
 <script>
-    // Navbar scroll effect
     const navbar = document.getElementById('navbar');
-    window.addEventListener('scroll', function () {
+    window.addEventListener('scroll', () => {
         navbar.classList.toggle('scrolled', window.scrollY > 50);
     });
-
-    // Mobile menu toggle
-    document.getElementById('mobileToggle').addEventListener('click', function () {
+    document.getElementById('mobileToggle').addEventListener('click', function() {
         document.getElementById('navLinks').classList.toggle('active');
-        var icon = this.querySelector('i');
+        const icon = this.querySelector('i');
         icon.classList.toggle('fa-bars');
         icon.classList.toggle('fa-times');
     });
-
-    // Reveal .fade-up elements — runs on load AND scroll
-    function revealElements() {
-        var elements = document.querySelectorAll('.fade-up');
-        elements.forEach(function(el) {
-            var rect = el.getBoundingClientRect();
-            if (rect.top < window.innerHeight - 80) {
-                el.classList.add('visible');
-            }
-        });
-    }
-    revealElements();
-    window.addEventListener('scroll', revealElements);
+    const _fuObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); _fuObs.unobserve(e.target); } });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.fade-up').forEach(el => _fuObs.observe(el));
 </script>
 </body>
 </html>
